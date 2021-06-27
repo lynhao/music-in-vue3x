@@ -1,24 +1,28 @@
-# music
+## TODOLIST
 
-## Project setup
-```
-npm install
-```
+1. - [x] 服务端
+    1. - [x] 使用Express搭建服务
+    2. - [x] 推荐页接口
+    3. - [x] 歌手列表接口
+    4. - [x] 注册歌手详情
+    5. - [x] 更新每日url变化接口
+    6. - [x] 歌词接口
+    7. - [x] 歌单专辑接口
+    8. - [x] 排行榜接口
+    9. - [x] 排行榜详情接口
+    10. - [x] 热门搜索接口
+    11. - [x] 搜索查询接口
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+2. - [x] 推荐页开发 
+   1. - [x] Tab组件开发
+   2. - [x] 轮播组件开发,轮播功能实现
+   3. - [x] 歌单列表实现
+   4. - [x] 自定义Loading指令,支持动态传参
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+3. - [] 歌手页开发
+4. - [] 歌手详情页开发
+5. - [] 播放器组件和业务开发
+6. - [] 歌单详情页和排行榜
+7. - [] 搜索业务开发
+8. - [] 用户中心业务开发
+9. - [] 部署
