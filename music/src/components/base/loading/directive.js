@@ -10,12 +10,20 @@ const loadingDirective = {
         const app = createApp(Loading)
         const instance = app.mount(document.createElement('div'))
         el.instance = instance
+        const title = binding.arg
+        if (typeof title !== 'undefined') {
+            instance.setTitle(title)
+        }
 
         if (binding.value) {
             append(el)
         }
     },
     updated(el, binding, vnode) {
+        const title = binding.arg
+        if (typeof title !== 'undefined') {
+            el.instance.setTitle(title)
+        }
         if (binding.value !== binding.oldValue) {
             binding.value ? append(el) : remove(el)
         }

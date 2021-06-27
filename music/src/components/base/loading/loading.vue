@@ -12,7 +12,7 @@ export default {
     name: 'loadings',
     data() {
         return {
-            title: '加载中...'
+            title: ''
         }
     },
     methods: {
