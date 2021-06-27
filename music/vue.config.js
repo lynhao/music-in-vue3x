@@ -16,7 +16,7 @@ module.exports = {
     before(app) {
       registerRouter(app)
     }
-  },
+  }
   // configureWebpack: (config) => {
   //   if (process.env.npm_config_report) {
   //     const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
