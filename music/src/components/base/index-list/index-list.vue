@@ -27,6 +27,7 @@
     <div
       class="fixed"
       v-show="fixedTitle"
+      :style="fixedStyle"
     >
       <div class="fixed-title">{{fixedTitle}}</div>
     </div>
@@ -50,12 +51,13 @@
       }
     },
     setup(props) {
-        const { groupRef, onScroll, fixedTitle } = useFixed(props)
+        const { groupRef, onScroll, fixedTitle, fixedStyle } = useFixed(props)
 
         return {
             groupRef,
             onScroll,
-            fixedTitle
+            fixedTitle,
+            fixedStyle
         }
     }
     // emits: ['select'],

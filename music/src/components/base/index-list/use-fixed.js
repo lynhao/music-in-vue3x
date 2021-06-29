@@ -4,6 +4,8 @@ export default function useFixed(props) {
     const groupRef = ref(null)
     const listHeights = ref([])
     const scrollY = ref(0)
+    const distanceTitle = ref(0)
+    const TITLE_HEIGHT = 30
     // 当前渲染组的索引
     const currentIndex = ref(0)
 
@@ -14,6 +16,13 @@ export default function useFixed(props) {
         return currentGroup ? currentGroup.title : ''
     })
 
+    const fixedStyle = computed(() => {
+        const distanceVal = distanceTitle.value
+        const diff = (distanceVal > 0 && distanceVal < TITLE_HEIGHT) ? distanceVal - TITLE_HEIGHT : 0
+        return {
+            transform: `translate3d(0, ${diff}px, 0)`
+        }
+    })
     watch(() => props.data, async() => {
         await nextTick()
         calculate()
@@ -24,9 +33,9 @@ export default function useFixed(props) {
         for (let i = 0; i < listHeightsVal.length - 1; i++) {
             const heightTop = listHeightsVal[i]
             const heightBottom = listHeightsVal[i + 1]
-
             if (newY >= heightTop && newY <= heightBottom) {
                 currentIndex.value = i
+                distanceTitle.value = heightBottom - newY
             }
         }
     })
@@ -54,6 +63,7 @@ export default function useFixed(props) {
     return {
         groupRef,
         onScroll,
-        fixedTitle
+        fixedTitle,
+        fixedStyle
     }
 }
