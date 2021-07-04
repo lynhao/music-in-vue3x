@@ -23,6 +23,7 @@
       v-loadings="loading"
       :probe-type="3"
       @scroll="onScroll"
+      v-no-result:[noResultText]="noResult"
     >
       <div class="song-list-wrapper">
         <song-list
@@ -54,7 +55,11 @@
             },
             title: String,
             pic: String,
-            loading: Boolean
+            loading: Boolean,
+            noResultText: {
+                type: String,
+                default: '抱歉，没有找到播放歌曲'
+            }
         },
         data() {
             return {
@@ -64,6 +69,9 @@
             }
         },
         computed: {
+            noResult() {
+                return !this.loading && !this.songs.length
+            },
             bgImageStyle() {
                 const scrollY = this.scrollY
                 let zIndex = 0

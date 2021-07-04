@@ -63,6 +63,7 @@ export default {
         }
         const result = await getSingerDetail(this.computedSinger)
         this.songs = await processSongs(result.songs)
+        // this.songs = []
         this.loading = false
     }
 }
