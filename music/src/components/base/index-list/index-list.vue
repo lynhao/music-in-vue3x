@@ -12,11 +12,13 @@
         class="group"
       >
         <h2 class="title">{{group.title}}</h2>
-        <ul>
+        <ul ref="singerRef">
           <li
-            v-for="item in group.list"
+            v-for="(item, index) in group.list"
             :key="item.id"
             class="item"
+            @click="onItemClick"
+            :data-index="index"
           >
             <img class="avatar" v-lazy="item.pic">
             <span class="name">{{item.name}}</span>
@@ -53,6 +55,7 @@
   import Scroll from '@/components/base/scroll/scroll'
   import useFixed from './use-fixed'
   import useShortcut from './use-shortcut'
+  import useSingerDetail from './use-singer-detail'
 
   export default {
     name: 'index-list',
@@ -65,12 +68,15 @@
         }
       }
     },
-    setup(props) {
+    emits: ['select'],
+    setup(props, { emit }) {
         const { groupRef, onScroll, fixedTitle, fixedStyle, currentIndex } = useFixed(props)
         const { shortcutList, onShortcutTouchStart, scrollRef, onShortcutTouchMove } = useShortcut(props, groupRef)
+        const { singerRef, onItemClick } = useSingerDetail(props, emit, currentIndex)
 
         return {
             groupRef,
+            singerRef,
             onScroll,
             fixedTitle,
             fixedStyle,
@@ -78,33 +84,10 @@
             currentIndex,
             onShortcutTouchStart,
             scrollRef,
-            onShortcutTouchMove
+            onShortcutTouchMove,
+            onItemClick
         }
     }
-    // emits: ['select'],
-    // setup(props, { emit }) {
-    //   const { groupRef, onScroll, fixedTitle, fixedStyle, currentIndex } = useFixed(props)
-    //   const { shortcutList, scrollRef, onShortcutTouchStart, onShortcutTouchMove } = useShortcut(props, groupRef)
-
-    //   function onItemClick(item) {
-    //     emit('select', item)
-    //   }
-
-    //   return {
-    //     onItemClick,
-    //     // fixed
-    //     groupRef,
-    //     onScroll,
-    //     fixedTitle,
-    //     fixedStyle,
-    //     currentIndex,
-    //     // shortcut
-    //     shortcutList,
-    //     scrollRef,
-    //     onShortcutTouchStart,
-    //     onShortcutTouchMove
-    //   }
-    // }
   }
 </script>
 

@@ -6,7 +6,6 @@ const relativeCls = 'g-relative'
 
 const loadingDirective = {
     mounted(el, binding, vnode) {
-        console.log(vnode)
         const app = createApp(Loading)
         const instance = app.mount(document.createElement('div'))
         el.instance = instance
