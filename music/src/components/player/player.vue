@@ -17,9 +17,31 @@
             <h1 class="title">{{currentSong.name}}</h1>
             <h2 class="subtitle">{{currentSong.singer}}</h2>
         </div>
+        <div class="bottom">
+            <div class="operators">
+                <div class="icon i-left">
+                    <i class="icon-sequence"></i>
+                </div>
+                <div class="icon i-left" :class="disableCls">
+                    <i @click="prev" class="icon-prev"></i>
+                </div>
+                <div class="icon i-center" :class="disableCls">
+                    <i @click="togglePlay" :class="playIcon"></i>
+                </div>
+                <div class="icon i-right" :class="disableCls">
+                    <i @click="next" class="icon-next"></i>
+                </div>
+                <div class="icon i-right">
+                    <i class="icon-not-favorite"></i>
+                </div>
+            </div>
+        </div>
     </div>
     <audio
         ref="audioRef"
+        @pause="pause"
+        @canplay="ready"
+        @error="error"
     ></audio>
   </div>
 </template>
@@ -32,27 +54,111 @@
         name: 'player',
         setup() {
             const audioRef = ref(null)
+            const songReady = ref(false)
 
             const store = useStore()
             const fullScreen = computed(() => store.state.fullScreen)
             const currentSong = computed(() => store.getters.currentSong)
+            const playing = computed(() => store.state.playing)
+            const playIcon = computed(() => {
+                return playing.value ? 'icon-pause' : 'icon-play'
+            })
+            const currentIndex = computed(() => store.state.currentIndex)
+            const playlist = computed(() => store.state.playlist)
+            const disableCls = computed(() => {
+                return songReady.value ? '' : 'disable'
+            })
 
             watch(currentSong, (newSong) => {
                 if (!newSong.id || !newSong.url) return
+                songReady.value = false // 切歌时让缓冲标志失效
                 const audioEl = audioRef.value
                 audioEl.src = newSong.url
                 audioEl.play()
+            })
+
+            watch(playing, (newPlaying) => {
+                if (!songReady.value) return
+                const audioEl = audioRef.value
+                newPlaying ? audioEl.play() : audioEl.pause()
             })
 
             function goBack() {
                 store.commit('setFullScreen', false)
             }
 
+            function togglePlay() {
+                if (!songReady.value) return
+                store.commit('setPlayingState', !playing.value)
+            }
+
+            function pause() {
+                store.commit('setPlayingState', false)
+            }
+
+            function prev() {
+                let index = currentIndex.value - 1
+                const list = playlist.value
+
+                if (!list.length || !songReady.value) return
+                if (list.length === 1) {
+                    loop()
+                } else {
+                    if (index === -1) {
+                        index = list.length - 1
+                    }
+                    store.commit('setCurrentIndex', index)
+                    if (!playing.value) {
+                        store.commit('setPlayingState', true)
+                    }
+                }
+            }
+
+            function next() {
+                let index = currentIndex.value + 1
+                const list = playlist.value
+
+                if (!list.length || !songReady.value) return
+                if (list.length === 1) {
+                    loop()
+                } else {
+                    if (index === list.length) {
+                        index = 0
+                    }
+                    store.commit('setCurrentIndex', index)
+                    if (!playing.value) {
+                        store.commit('setPlayingState', true)
+                    }
+                }
+            }
+            function loop() {
+                const audioEl = audioRef.value
+                audioEl.currentTime = 0 // 达到循环播放目的
+                audioEl.play()
+            }
+
+            function ready() {
+                if (songReady.value) return
+                songReady.value = true
+            }
+
+            function error() {
+                songReady.value = true
+            }
+
             return {
                 fullScreen,
                 currentSong,
+                disableCls,
                 audioRef,
-                goBack
+                goBack,
+                playIcon,
+                togglePlay,
+                pause,
+                prev,
+                next,
+                ready,
+                error
             }
         }
     }
