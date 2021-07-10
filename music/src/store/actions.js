@@ -18,3 +18,17 @@ export function randomPlay({ commit }, list) {
     commit('setPlayList', shuffle(list))
     commit('setCurrentIndex', 0)
 }
+
+export function changeMode({ commit, state, getters }, mode) {
+    const currentId = getters.currentSong.id
+    if (mode === PLAY_MODE.random) {
+        commit('setPlayList', shuffle(state.sequenceList))
+    } else {
+        commit('setPlayList', state.sequenceList)
+    }
+    // 找到当前正在播放歌曲的位置
+    const index = state.playlist.findIndex((song) => song.id === currentId)
+    commit('setCurrentIndex', index)
+
+    commit('setPlayMode', mode)
+}

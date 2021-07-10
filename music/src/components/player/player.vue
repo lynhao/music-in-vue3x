@@ -20,7 +20,7 @@
         <div class="bottom">
             <div class="operators">
                 <div class="icon i-left">
-                    <i class="icon-sequence"></i>
+                    <i :class="modeIcon" @click="changeMode"></i>
                 </div>
                 <div class="icon i-left" :class="disableCls">
                     <i @click="prev" class="icon-prev"></i>
@@ -49,6 +49,7 @@
 <script>
     import { useStore } from 'vuex'
     import { computed, watch, ref } from 'vue'
+    import useMode from './use-mode'
 
     export default {
         name: 'player',
@@ -64,6 +65,8 @@
                 return playing.value ? 'icon-pause' : 'icon-play'
             })
             const currentIndex = computed(() => store.state.currentIndex)
+
+            const { modeIcon, changeMode } = useMode()
             const playlist = computed(() => store.state.playlist)
             const disableCls = computed(() => {
                 return songReady.value ? '' : 'disable'
@@ -158,7 +161,10 @@
                 prev,
                 next,
                 ready,
-                error
+                error,
+                // modeIcon
+                modeIcon,
+                changeMode
             }
         }
     }
