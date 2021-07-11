@@ -18,6 +18,16 @@
             <h2 class="subtitle">{{currentSong.singer}}</h2>
         </div>
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{formatTime(currentTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar
+                :progress="progress"
+                @progress-changing="onProgressChanging"
+                @progress-changed="onProgressChanged"></progress-bar>
+            </div>
+            <span class="time time-r">{{formatTime(currentSong.duration)}}</span>
+          </div>
             <div class="operators">
                 <div class="icon i-left">
                     <i :class="modeIcon" @click="changeMode"></i>
@@ -42,6 +52,8 @@
         @pause="pause"
         @canplay="ready"
         @error="error"
+        @timeupdate="updateTime"
+        @ended="end"
     ></audio>
   </div>
 </template>
@@ -51,12 +63,20 @@
     import { computed, watch, ref } from 'vue'
     import useMode from './use-mode'
     import useFavorite from './use-favorite'
+    import ProgressBar from './progress-bar'
+    import { formatTime } from '@/assets/js/util'
+    import { PLAY_MODE } from '@/assets/js/constant'
 
     export default {
         name: 'player',
+        components: {
+          ProgressBar
+        },
         setup() {
             const audioRef = ref(null)
             const songReady = ref(false)
+            const currentTime = ref(0)
+            let proressChanging = false
 
             const store = useStore()
             const fullScreen = computed(() => store.state.fullScreen)
@@ -66,6 +86,7 @@
                 return playing.value ? 'icon-pause' : 'icon-play'
             })
             const currentIndex = computed(() => store.state.currentIndex)
+            const playMode = computed(() => store.state.playMode)
 
             // hook
             const { modeIcon, changeMode } = useMode()
@@ -76,9 +97,13 @@
             const disableCls = computed(() => {
                 return songReady.value ? '' : 'disable'
             })
+            const progress = computed(() => {
+              return currentTime.value / currentSong.value.duration
+            })
 
             watch(currentSong, (newSong) => {
                 if (!newSong.id || !newSong.url) return
+                currentTime.value = 0 // 歌曲更新重置为0
                 songReady.value = false // 切歌时让缓冲标志失效
                 const audioEl = audioRef.value
                 audioEl.src = newSong.url
@@ -143,6 +168,7 @@
                 const audioEl = audioRef.value
                 audioEl.currentTime = 0 // 达到循环播放目的
                 audioEl.play()
+                store.commit('setPlayingState', true)
             }
 
             function ready() {
@@ -154,10 +180,41 @@
                 songReady.value = true
             }
 
+            function updateTime(e) {
+              // 修复在播放过程拖动进度条的时候
+              // updateTime 被重复调用导致进度条来回跳动
+              if (!proressChanging) {
+                currentTime.value = e.target.currentTime
+              }
+            }
+
+            function onProgressChanging(progress) {
+              proressChanging = true
+              currentTime.value = currentSong.value.duration * progress
+            }
+
+            function onProgressChanged(progress) {
+              proressChanging = false
+              audioRef.value.currentTime = currentTime.value = currentSong.value.duration * progress
+              if (!playing.value) {
+                store.commit('setPlayingState', true)
+              }
+            }
+
+            function end() {
+              currentTime.value = 0
+              if (playMode.value === PLAY_MODE.loop) {
+                loop()
+              } else {
+                next()
+              }
+            }
             return {
                 fullScreen,
                 currentSong,
+                currentTime,
                 disableCls,
+                progress,
                 audioRef,
                 goBack,
                 playIcon,
@@ -167,6 +224,11 @@
                 next,
                 ready,
                 error,
+                updateTime,
+                formatTime,
+                onProgressChanging,
+                onProgressChanged,
+                end,
                 // modeIcon
                 modeIcon,
                 changeMode,

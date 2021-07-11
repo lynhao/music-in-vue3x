@@ -1,7 +1,6 @@
 import storage from 'good-storage'
 
 function insertArray(arr, val, compare, maxLen) {
-    debugger
     const index = arr.findIndex(compare)
     if (index > -1) return
     arr.unshift(val)
