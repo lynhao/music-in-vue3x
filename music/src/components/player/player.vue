@@ -17,6 +17,22 @@
             <h1 class="title">{{currentSong.name}}</h1>
             <h2 class="subtitle">{{currentSong.singer}}</h2>
         </div>
+        <div class="middle">
+          <div class="middle-l">
+            <div class="cd-wrapper">
+              <div
+                class="cd"
+                ref="cdRef">
+                <img
+                  ref="cdImageRef"
+                  :src="currentSong.pic"
+                  alt=""
+                  class="image"
+                  :class="cdCls">
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="bottom">
           <div class="progress-wrapper">
             <span class="time time-l">{{formatTime(currentTime)}}</span>
@@ -66,6 +82,7 @@
     import ProgressBar from './progress-bar'
     import { formatTime } from '@/assets/js/util'
     import { PLAY_MODE } from '@/assets/js/constant'
+    import useCd from './use-cd'
 
     export default {
         name: 'player',
@@ -91,7 +108,7 @@
             // hook
             const { modeIcon, changeMode } = useMode()
             const { getFavoriteIcon, toggleFavorite } = useFavorite()
-
+            const { cdCls, cdRef, cdImageRef } = useCd()
             // computed
             const playlist = computed(() => store.state.playlist)
             const disableCls = computed(() => {
@@ -234,7 +251,11 @@
                 changeMode,
                 // favorite
                 getFavoriteIcon,
-                toggleFavorite
+                toggleFavorite,
+                // cd
+                cdCls,
+                cdRef,
+                cdImageRef
             }
         }
     }
