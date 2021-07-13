@@ -32,6 +32,25 @@
               </div>
             </div>
           </div>
+          <scroll
+            class="middle-r"
+            ref="lyricScrollRef"
+          >
+            <div class="lyric-wrapper">
+              <div
+                v-if="currentLyric"
+                ref="lyricListRef">
+                <p
+                  class="text"
+                  :class="{'current': currentLineNum === index}"
+                  v-for="(line,index) in currentLyric.lines"
+                  :key="line.num"
+                >
+                  {{line.txt}}
+                </p>
+              </div>
+            </div>
+          </scroll>
         </div>
         <div class="bottom">
           <div class="progress-wrapper">
@@ -83,16 +102,20 @@
     import { formatTime } from '@/assets/js/util'
     import { PLAY_MODE } from '@/assets/js/constant'
     import useCd from './use-cd'
+    import useLyric from './use-lyric'
+    import Scroll from '@/components/base/scroll/scroll'
 
     export default {
         name: 'player',
         components: {
-          ProgressBar
+          ProgressBar,
+          Scroll
         },
         setup() {
             const audioRef = ref(null)
             const songReady = ref(false)
             const currentTime = ref(0)
+
             let proressChanging = false
 
             const store = useStore()
@@ -109,6 +132,8 @@
             const { modeIcon, changeMode } = useMode()
             const { getFavoriteIcon, toggleFavorite } = useFavorite()
             const { cdCls, cdRef, cdImageRef } = useCd()
+            const { currentLyric, currentLineNum, playLyric, stopLyric, lyricScrollRef, lyricListRef } = useLyric({ songReady, currentTime })
+
             // computed
             const playlist = computed(() => store.state.playlist)
             const disableCls = computed(() => {
@@ -130,7 +155,12 @@
             watch(playing, (newPlaying) => {
                 if (!songReady.value) return
                 const audioEl = audioRef.value
-                newPlaying ? audioEl.play() : audioEl.pause()
+                if (newPlaying) {
+                  audioEl.play()
+                } else {
+                  audioEl.pause()
+                  stopLyric()
+                }
             })
 
             function goBack() {
@@ -191,6 +221,7 @@
             function ready() {
                 if (songReady.value) return
                 songReady.value = true
+                playLyric()
             }
 
             function error() {
@@ -208,6 +239,9 @@
             function onProgressChanging(progress) {
               proressChanging = true
               currentTime.value = currentSong.value.duration * progress
+              // 先动再停
+              playLyric()
+              stopLyric()
             }
 
             function onProgressChanged(progress) {
@@ -216,6 +250,7 @@
               if (!playing.value) {
                 store.commit('setPlayingState', true)
               }
+              playLyric()
             }
 
             function end() {
@@ -255,7 +290,12 @@
                 // cd
                 cdCls,
                 cdRef,
-                cdImageRef
+                cdImageRef,
+                // lyric
+                currentLyric,
+                currentLineNum,
+                lyricScrollRef,
+                lyricListRef
             }
         }
     }
@@ -327,6 +367,7 @@
         font-size: 0;
         .middle-l {
           display: inline-block;
+          display: none;
           vertical-align: top;
           position: relative;
           width: 100%;

@@ -9,7 +9,6 @@ const state = {
     currentIndex: 0, // 播放索引
     fullScreen: false, // 是否全屏播放
     favoriteList: load(FAVORITE_KEY)
-
 }
 
 export default state
