@@ -16,10 +16,19 @@
                     />
                 </div>
             </div>
-            <div class="slider-wrapper">
+            <div
+                ref="sliderWrapperRef"
+                class="slider-wrapper"
+            >
                 <div class="slider-group">
-                    <h2 class="name">{{currentSong.name}}</h2>
-                    <p class="desc">{{currentSong.singer}}</p>
+                    <div
+                        class="slider-page"
+                        v-for="song in playlist"
+                        :key="song.id"
+                    >
+                        <h2 class="name">{{song.name}}</h2>
+                        <p class="desc">{{song.singer}}</p>
+                    </div>
                 </div>
             </div>
             <div class="control">
@@ -33,6 +42,9 @@
                         @click.stop="togglePlay"></i>
                 </progress-circle>
             </div>
+            <div class="control">
+                <i class="icon-playlist"></i>
+            </div>
         </div>
     </transition>
 </template>
@@ -42,6 +54,7 @@ import { useStore } from 'vuex'
 import { computed, watch } from 'vue'
 import useCd from './use-cd'
 import ProgressCircle from './progress-circle.vue'
+import useMiniSlider from './use-mini-slider'
 
 export default {
     name: 'mini-player',
@@ -60,6 +73,8 @@ export default {
         const fullScreen = computed(() => store.state.fullScreen)
         const currentSong = computed(() => store.getters.currentSong)
         const playing = computed(() => store.state.playing)
+        const playlist = computed(() => store.state.playlist)
+        const { sliderWrapperRef } = useMiniSlider()
 
         watch(currentSong, e => {
             console.log(e)
@@ -77,12 +92,15 @@ export default {
         return {
             fullScreen,
             currentSong,
+            playlist,
             showNormalPlayer,
             miniPlayIcon,
             // cd
             cdCls,
             cdRef,
-            cdImageRef
+            cdImageRef,
+            // mini-slider
+            sliderWrapperRef
         }
     }
 }
@@ -129,7 +147,12 @@ export default {
         position: relative;
         overflow: hidden;
         white-space: nowrap;
-        .name {
+        .slider-page {
+          display: inline-block;
+          width: 100%;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          .name {
             margin-bottom: 2px;
             @include no-wrap();
             font-size: $font-size-medium;
@@ -140,23 +163,7 @@ export default {
             font-size: $font-size-small;
             color: $color-text-d;
           }
-        // .slider-page {
-        //   display: inline-block;
-        //   width: 100%;
-        //   transform: translate3d(0, 0, 0);
-        //   backface-visibility: hidden;
-        //   .name {
-        //     margin-bottom: 2px;
-        //     @include no-wrap();
-        //     font-size: $font-size-medium;
-        //     color: $color-text;
-        //   }
-        //   .desc {
-        //     @include no-wrap();
-        //     font-size: $font-size-small;
-        //     color: $color-text-d;
-        //   }
-        // }
+        }
       }
     }
     .control {
