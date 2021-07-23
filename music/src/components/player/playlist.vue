@@ -6,13 +6,13 @@
         v-show="visible && playlist.length"
         @click="hide"
       >
-        <div class="list-wrapper">
+        <div class="list-wrapper" @click.stop>
             <div class="list-header">
                 <h1 class="title">
                 <i
                     class="icon"
                     :class="modeIcon"
-                    @click.stop="changeMode"
+                    @click="changeMode"
                 >
                 </i>
                 <span class="text">{{modeText}}</span>
@@ -22,24 +22,27 @@
                 ref="scrollRef"
                 class="list-content"
             >
-                <ul>
+                <ul
+                    ref="listRef"
+                >
                     <li
                         class="item"
                         v-for="song in sequenceList"
                         :key="song.id"
+                        @click="selectItem(song)"
                     >
                         <i
                         class="current"
                         :class="getCurrentIcon(song)"
                         ></i>
                         <span class="text">{{song.name}}</span>
-                        <span class="favorite" @click.stop="toggleFavorite">
+                        <span class="favorite" @click.stop="toggleFavorite(song)">
                         <i :class="getFavoriteIcon(song)"></i>
                         </span>
                     </li>
                 </ul>
             </scroll>
-            <div class="list-footer" @click.stop="hide">
+            <div class="list-footer" @click="hide">
                 <span>关闭</span>
             </div>
         </div>
@@ -50,7 +53,7 @@
 
 <script>
   import Scroll from '@/components/base/scroll/scroll'
-  import { ref, computed, nextTick } from 'vue'
+  import { ref, computed, nextTick, watch } from 'vue'
   import { useStore } from 'vuex'
   import useMode from './use-mode'
   import useFavorite from './use-favorite'
@@ -63,6 +66,7 @@
     setup() {
         const visible = ref(false)
         const scrollRef = ref(null)
+        const listRef = ref(null)
 
         const store = useStore()
         const playlist = computed(() => store.state.playlist)
@@ -72,6 +76,12 @@
         const { modeIcon, changeMode, modeText } = useMode()
         const { getFavoriteIcon, toggleFavorite } = useFavorite()
 
+        watch(currentSong, async () => {
+            if (!visible.value) return
+            await nextTick()
+            scrollToCurrent()
+        })
+
         function hide() {
             visible.value = false
         }
@@ -80,6 +90,7 @@
 
             await nextTick()
             refreshScroll()
+            scrollToCurrent()
         }
 
         function getCurrentIcon(song) {
@@ -91,9 +102,26 @@
         function refreshScroll() {
             scrollRef.value.scroll.refresh()
         }
+
+        function scrollToCurrent() {
+            const index = sequenceList.value.findIndex((song) => {
+                return currentSong.value.id === song.id
+            })
+            const target = listRef.value.children[index]
+            scrollRef.value.scroll.scrollToElement(target, 300)
+        }
+
+        function selectItem(song) {
+            const index = playlist.value.findIndex((item) => {
+                return song.id === item.id
+            })
+            store.commit('setCurrentIndex', index)
+            store.commit('setPlayingState', true)
+        }
         return {
             visible,
             scrollRef,
+            listRef,
             playlist,
             sequenceList,
             getCurrentIcon,
@@ -105,7 +133,8 @@
             getFavoriteIcon,
             toggleFavorite,
             hide,
-            show
+            show,
+            selectItem
         }
     }
   }
