@@ -32,3 +32,46 @@ export function changeMode({ commit, state, getters }, mode) {
 
     commit('setPlayMode', mode)
 }
+
+export function removeSong({ commit, state }, song) {
+    const sequenceList = state.sequenceList.slice()
+    const playlist = state.playlist.slice()
+
+    const sequenceIndex = findIndex(sequenceList, song)
+    const playIndex = findIndex(playlist, song)
+
+    if (playlist < 0 || sequenceIndex < 0) {
+        return
+    }
+
+    let currentIndex = state.currentIndex
+    // 删除的是当前播放歌曲前面的歌曲, 或者是最后一首歌
+    if (playIndex < currentIndex || currentIndex === playlist.length - 1) {
+        currentIndex--
+    }
+
+    sequenceList.splice(sequenceIndex, 1)
+    playlist.splice(playIndex, 1)
+
+    commit('setSequenceList', sequenceList)
+    commit('setPlayList', playlist)
+    commit('setCurrentIndex', currentIndex)
+
+    // 清空播放列表后 不要播放
+    if (!playlist.length) {
+        commit('setPlayingState', false)
+    }
+}
+
+export function clearSongList({ commit }) {
+    commit('setSequenceList', [])
+    commit('setPlayList', [])
+    commit('setCurrentIndex', 0)
+    commit('setPlayingState', false)
+}
+
+function findIndex(list, song) {
+    return list.findIndex((item) => {
+        return item.id === song.id
+    })
+}

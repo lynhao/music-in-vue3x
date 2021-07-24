@@ -9,21 +9,26 @@
         <div class="list-wrapper" @click.stop>
             <div class="list-header">
                 <h1 class="title">
-                <i
-                    class="icon"
-                    :class="modeIcon"
-                    @click="changeMode"
-                >
-                </i>
-                <span class="text">{{modeText}}</span>
+                  <i
+                      class="icon"
+                      :class="modeIcon"
+                      @click="changeMode"
+                  >
+                  </i>
+                  <span class="text">{{modeText}}</span>
+                  <span class="clear" @click="showConfirm">
+                    <i class="icon-clear"></i>
+                  </span>
                 </h1>
             </div>
             <scroll
                 ref="scrollRef"
                 class="list-content"
             >
-                <ul
+                <transition-group
                     ref="listRef"
+                    name="list"
+                    tag="ul"
                 >
                     <li
                         class="item"
@@ -37,15 +42,26 @@
                         ></i>
                         <span class="text">{{song.name}}</span>
                         <span class="favorite" @click.stop="toggleFavorite(song)">
-                        <i :class="getFavoriteIcon(song)"></i>
+                            <i :class="getFavoriteIcon(song)"></i>
+                        </span>
+                        <span
+                          :class="{'disable': removing}"
+                          class="delete"
+                          @click.stop="removeSong(song)">
+                            <i class="icon-delete"></i>
                         </span>
                     </li>
-                </ul>
+                </transition-group>
             </scroll>
             <div class="list-footer" @click="hide">
                 <span>关闭</span>
             </div>
         </div>
+        <confirm
+          ref="confirmRef"
+          text="是否情况播放列表"
+          confirmBtnText="清空"
+          @confirm="confirmClear"></confirm>
       </div>
     </transition>
   </teleport>
@@ -57,16 +73,20 @@
   import { useStore } from 'vuex'
   import useMode from './use-mode'
   import useFavorite from './use-favorite'
+  import Confirm from '@/components/base/confirm/confirm'
 
   export default {
     name: 'playlist',
     components: {
-        Scroll
+        Scroll,
+        Confirm
     },
     setup() {
         const visible = ref(false)
         const scrollRef = ref(null)
         const listRef = ref(null)
+        const removing = ref(false)
+        const confirmRef = ref(null)
 
         const store = useStore()
         const playlist = computed(() => store.state.playlist)
@@ -76,8 +96,8 @@
         const { modeIcon, changeMode, modeText } = useMode()
         const { getFavoriteIcon, toggleFavorite } = useFavorite()
 
-        watch(currentSong, async () => {
-            if (!visible.value) return
+        watch(currentSong, async (newSong) => {
+            if (!visible.value || !newSong.id) return
             await nextTick()
             scrollToCurrent()
         })
@@ -107,7 +127,8 @@
             const index = sequenceList.value.findIndex((song) => {
                 return currentSong.value.id === song.id
             })
-            const target = listRef.value.children[index]
+            if (index === -1) return
+            const target = listRef.value.$el.children[index]
             scrollRef.value.scroll.scrollToElement(target, 300)
         }
 
@@ -118,13 +139,40 @@
             store.commit('setCurrentIndex', index)
             store.commit('setPlayingState', true)
         }
+
+        function removeSong(song) {
+            if (removing.value) return
+            removing.value = true
+            store.dispatch('removeSong', song)
+            if (!playlist.value.length) {
+              hide()
+            }
+            setTimeout(() => {
+              // 300ms是因为删掉动画为300ms
+              removing.value = false
+            }, 300)
+        }
+
+        function showConfirm() {
+          confirmRef.value.show()
+        }
+
+        function confirmClear() {
+          store.dispatch('clearSongList')
+          hide()
+        }
+
         return {
             visible,
+            removing,
             scrollRef,
             listRef,
+            confirmRef,
             playlist,
             sequenceList,
             getCurrentIcon,
+            showConfirm,
+            confirmClear,
             // mode
             modeIcon,
             changeMode,
@@ -134,7 +182,8 @@
             toggleFavorite,
             hide,
             show,
-            selectItem
+            selectItem,
+            removeSong
         }
     }
   }
