@@ -1,6 +1,6 @@
 # 学习记录
 
-此项目用来记录我在学习VUE3过程学到的知识点,我认为学习一个新东西最好是通过项目的方式边开发边学这样学习会更有效率,项目可以查看**music**这个目录,一些新特性记录可以查看**demo**
+此项目用来记录我在学习Vue3过程学到的知识点,我认为学习一个新东西最好是通过项目的方式边开发边学这样学习会更有效率,项目可以查看**music**这个目录,一些新特性记录可以查看**demo**
 
 ## watch vs watchEffect
 
@@ -42,3 +42,36 @@ watchEffect(() => {
     console.log('state.name', state.name)
 })
 ```
+## Composition API 跟 Options API 的生命周期
+
+#### Options Api
+
+
+```mermaid
+graph TD
+beforeCreate --> created 
+created --> beforeMount
+beforeMount --> mounted
+mounted --> beforeUpdate
+beforeUpdate --> updated
+updated --> beforeUnmount
+beforeUnmount --> unmounted
+```
+> 相较于vue2, **beforeDestroy**和**destroyed**两个钩子改成了**beforeUnmount**和**unmounted**
+
+#### Composition API
+
+将beforeCreate和created合并成一个**setup**函数,其他钩子前缀**+on**
+
+```
+setup() {
+  onBeforeMount(() => {}),
+  onMounted(() => {}),
+  onBeforeUpdate(() => {}),
+  onUpdated(() => {}),
+  onBeforeUnmount(() => {}),
+  onUnmounted(() => {})
+}
+```
+
+具体相关代码查看demo目录
