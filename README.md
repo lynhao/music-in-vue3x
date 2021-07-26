@@ -61,7 +61,7 @@ beforeUnmount --> unmounted
 
 #### Composition API
 
-将beforeCreate和created合并成一个**setup**函数,其他钩子前缀**\+on**
+将beforeCreate和created合并成一个**setup**函数,其他钩子前缀+**on**
 
 ```
 setup() {
