@@ -1,12 +1,13 @@
 <template>
     <div>
-        <span> today is {{weatherRef}} {{state.weather}}</span>,
+        <span> today is {{weatherRef}} {{weather}}</span>,
         <span> my mood is {{state.mood}}</span>
     </div>
 </template>
 
 <script>
 import { toRef, reactive } from 'vue'
+import watchCompletion from '../../../watch/src/components/watch'
 
 export default {
     name: 'Ref',
@@ -27,6 +28,7 @@ export default {
         setTimeout(() => {
             // weatherRef.value = 'windy'
             state.weather = 'cloudy'
+            state.mood = 'so so'
         }, 2000);
 
         return {

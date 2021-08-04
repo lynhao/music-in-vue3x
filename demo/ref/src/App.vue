@@ -1,8 +1,8 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
   <!-- <ref></ref> -->
-  <!-- <to-ref></to-ref> -->
-  <to-refs></to-refs>
+  <to-ref></to-ref>
+  <!-- <to-refs></to-refs> -->
 </template>
 
 <script setup>
