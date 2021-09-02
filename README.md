@@ -144,6 +144,140 @@ return {
 
 > 完整代码可以查看目录[**demo/ref**]中的源码, 合成函数的例子可以查看[**music**]项目的源码,里面运用了大量的合成函数
 
+#### patchFlag
+
+1. 编译模板时,动态节点做标记
+2. 标记分为不同类型, 如TEXT PROPS
+3. diff算法时,可以区分静态节点,以及不同类型的动态节点
+
+- 1 /* TEXT */, 动态插入一个文本节点
+
+```code
+  <span>Hello World!</span>
+```
+
+> 编译后
+
+```code
+_createElementVNode("span", null, _toDisplayString(_ctx.msg), 1 /* TEXT */)
+
+```
+- 2 /* CLASS */, 动态插入一个class
+
+```code
+ <span :class="name"></span>
+```
+> 编译后
+
+```code
+_createElementVNode("span", {
+  class: _normalizeClass(_ctx.name)
+}, null, 2 /* CLASS */),
+```
+
+- 8 /* PROPS */, ["id"], 动态插入一个属性
+
+```code
+ <span :id="age"></span>
+ <span @click="clickHandler">Hello World!</span>
+```
+
+```code
+createElementVNode("span", { id: _ctx.age }, null, 8 /* PROPS */, ["id"])
+
+_createElementVNode("span", { onClick: _ctx.clickHandler }, "Hello World!", 8 /* PROPS */, ["onClick"]),
+
+```
+当然这些节点都是可以组合的,具体可在这里[测试](https://vue-next-template-explorer.netlify.app)
+
+> 这里解释一下第三点, vue3相对于vue2的diff算法,本质上算法并未发生变化,优化的点是diff的过程,在vue2中通过patchVnode,然后一层一层遍历对比,而在vue3中,我们给节点做了动态和静态的区分,当遇到静态vnode时不会做diff
+
+
+#### hoistStatic
+
+1. 将静态节点的定义,提升到父作用域,缓存起来
+2. 多个相邻的静态节点,会被合并起来
+3. 典型的拿空间换时间的优化策略
+
+```code
+<div>
+  <span>Hello World!</span>
+  <span>Hello World!</span>
+  <span>{{msg}}</span>
+</div>
+```
+
+> 经过hoistStatic处理后
+
+```code
+const _hoisted_1 = /*#__PURE__*/_createElementVNode("span", null, "Hello World!", -1 /* HOISTED */)
+const _hoisted_2 = /*#__PURE__*/_createElementVNode("span", null, "Hello World!", -1 /* HOISTED */)
+
+export function render(_ctx, _cache, $props, $setup, $data, $options) {
+  return (_openBlock(), _createElementBlock("div", null, [
+    _hoisted_1,
+    _hoisted_2,
+    _createElementVNode("span", null, _toDisplayString(_ctx.msg), 1 /* TEXT */)
+  ]))
+}
+```
+
+可以看到静态节点做了全局提升
+
+#### cacheHandler
+
+- 用来缓存事件函数
+
+```code
+<div>
+  <span @click="clickHandler">Hello World!</span>
+</div>
+```
+
+> 经过缓存之后
+
+```code
+export function render(_ctx, _cache, $props, $setup, $data, $options) {
+  return (_openBlock(), _createElementBlock("div", null, [
+    _createElementVNode("span", {
+      onClick: _cache[0] || (_cache[0] = (...args) => (_ctx.clickHandler && _ctx.clickHandler(...args)))
+    }, "Hello World!")
+  ]))
+}
+```
+
+#### SSR优化
+
+1. 静态节点直接输出, 跳过dom
+2. 动态节点,需要动态渲染
+
+```code
+<div>  
+  <span>Hello World!</span>
+  <span :id="age">{{ msg }}</span>
+</div>
+```
+
+> 优化后
+
+```code
+export function ssrRender(_ctx, _push, _parent, _attrs, $props, $setup, $data, $options) {
+  const _cssVars = { style: { color: _ctx.color }}
+  _push(`<div${
+    _ssrRenderAttrs(_mergeProps(_attrs, _cssVars))
+  }><span>Hello World!</span><span${
+    _ssrRenderAttr("id", _ctx.age)
+  }>${
+    _ssrInterpolate(_ctx.msg)
+  }</span></div>`)
+}
+```
+
+#### tree shaking
+
+- 编译时,根据不同写法(如指令),引入不同的API
+
+> 这块就不贴代码了
 
 
 
